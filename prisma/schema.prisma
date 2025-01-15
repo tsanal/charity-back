@@ -6,10 +6,16 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "mysql"
   url      = env("DATABASE_URL")
 }
-
+enum RelationshipType {
+  Donor
+  Participant
+  Outreach
+  Volunteer
+  Grant
+}
 model User {
   id              Int      @id @default(autoincrement())
   email           String   @unique
@@ -20,6 +26,27 @@ model User {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
   Token           Token[]
+}
+model Person {
+  id    Int   @id @default(autoincrement())
+  name  String
+  email String?  
+  street String?
+  city   String?
+  phone  String?
+  state  String?
+  zip    String?
+  relationshipType  String?
+  account Int ?
+}
+model Interaction {
+  id    Int   @id @default(autoincrement())
+  name   String
+  method String
+  date String
+  type String
+  duration String
+  description String
 }
 
 model Token {
