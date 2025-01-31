@@ -7,7 +7,8 @@ const createInteraction = {
     date: Joi.string().required(),
     type: Joi.string().required(),
     duration: Joi.string().required(),
-    description: Joi.string().required()
+    notes: Joi.string().required(),
+    personId: Joi.number().integer().required()
   })
 };
 

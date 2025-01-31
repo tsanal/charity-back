@@ -41,7 +41,7 @@ const router = express.Router();
 
 router
   .route('/')
-  .post(auth('manageUsers'), validate(personValidation.createPerson), personController.createPerson)
+  .post(auth('manageUsers'), personController.createPerson)
   .get(auth('getUsers'), validate(personValidation.getPersons), personController.getPersons);
 
 router
@@ -56,6 +56,11 @@ router
     auth('manageUsers'),
     validate(personValidation.deletePerson),
     personController.deletePerson
+  )
+  .put(
+    auth('manageUsers'),
+    validate(personValidation.softDeletePerson),
+    personController.softDeletePerson
   );
 
 export default router;

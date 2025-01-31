@@ -8,14 +8,15 @@ import { interactionService } from '../services';
  * Create a new interaction
  */
 const createInteraction = catchAsync(async (req, res) => {
-  const { name, method, date, type, duration, description } = req.body;
+  const { name, method, date, type, duration, notes, personId } = req.body;
   const interaction = await interactionService.createInteraction({
     name,
     method,
     date,
     type,
     duration,
-    description
+    notes,
+    personId
   });
   res.status(httpStatus.CREATED).send(interaction);
 });

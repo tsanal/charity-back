@@ -158,6 +158,7 @@ DATABASE_URL=postgresql://postgres:secret@localhost:5432/mydb?schema=public
 # JWT
 # JWT secret key
 JWT_SECRET=thisisasamplesecret
+
 # Number of minutes after which an access token expires
 JWT_ACCESS_EXPIRATION_MINUTES=30
 # Number of days after which a refresh token expires

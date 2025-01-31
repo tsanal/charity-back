@@ -8,17 +8,34 @@ import { personService } from '../services';
  * Create a new person
  */
 const createPerson = catchAsync(async (req, res) => {
-  const { name, email, street, city, phone, state, zip, relationshipType, account } = req.body;
-  const person = await personService.createPerson(
+  const {
+    account,
     name,
-    email,
     street,
     city,
-    phone,
     state,
     zip,
     relationshipType,
-    account
+    county,
+    race,
+    gender,
+    upliftStatus,
+    isDeleted
+  } = req.body;
+  console.log('createPerson', req.body);
+  const person = await personService.createPerson(
+    account,
+    name,
+    street,
+    city,
+    state,
+    zip,
+    relationshipType,
+    county,
+    race,
+    gender,
+    upliftStatus,
+    isDeleted
   );
   res.status(httpStatus.CREATED).send(person);
 });
@@ -27,7 +44,21 @@ const createPerson = catchAsync(async (req, res) => {
  * Get all persons with filtering and pagination
  */
 const getPersons = catchAsync(async (req, res) => {
-  const filter = pick(req.query, ['name', 'email', 'city', 'state', 'relationshipType']);
+  const filter = pick(req.query, [
+    'name',
+    'street',
+    'city',
+    'state',
+    'relationshipType',
+    'upliftStatus',
+    'gender',
+    'race',
+    'isDeleted',
+    'account',
+    'county',
+    'zip',
+    'isDeleted'
+  ]);
   const options = pick(req.query, ['sortBy', 'limit', 'page', 'sortType']);
   const result = await personService.queryPersons(filter, options);
   res.send(result);
@@ -60,10 +91,15 @@ const deletePerson = catchAsync(async (req, res) => {
   res.status(httpStatus.NO_CONTENT).send();
 });
 
+const softDeletePerson = catchAsync(async (req, res) => {
+  await personService.softDeletePersonById(Number(req.params.personId));
+  res.status(httpStatus.NO_CONTENT).send();
+});
 export default {
   createPerson,
   getPersons,
   getPerson,
   updatePerson,
-  deletePerson
+  deletePerson,
+  softDeletePerson
 };

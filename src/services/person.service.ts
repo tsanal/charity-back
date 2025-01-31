@@ -1,4 +1,4 @@
-import { Person, Prisma } from '@prisma/client';
+import { Person, Prisma, relationshipType, gender, upliftStatus } from '@prisma/client';
 import httpStatus from 'http-status';
 import prisma from '../client';
 import ApiError from '../utils/ApiError';
@@ -36,32 +36,33 @@ const getPersonByAccount = async <Key extends keyof Person>(
  * @returns {Promise<Person>}
  */
 const createPerson = async (
+  account: number,
   name: string,
-  email?: string,
   street?: string,
   city?: string,
-  phone?: string,
   state?: string,
   zip?: string,
-  relationshipType?: string,
-  account?: number
+  relationshipType?: relationshipType | null,
+  county?: string,
+  race?: string,
+  gender?: gender | null,
+  upliftStatus?: upliftStatus | null,
+  isDeleted?: boolean
 ): Promise<Person> => {
-  // Check if account is provided and already exists
-  if (account && (await getPersonByAccount(account))) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'Account already exists');
-  }
-
   return prisma.person.create({
     data: {
       name,
-      email: email?.trim() || null,
       street,
       city,
-      phone,
       state,
       zip,
-      relationshipType,
-      account
+      relationshipType: relationshipType || null,
+      account,
+      county,
+      race,
+      gender: gender || null,
+      upliftStatus: upliftStatus || null,
+      isDeleted
     }
   });
 };
@@ -76,7 +77,19 @@ const createPerson = async (
  * @returns {Promise<Pick<Person, Key>[]>}
  */
 const queryPersons = async <Key extends keyof Person>(
-  filter: Record<string, any>,
+  filter: {
+    account?: number | number[];
+    name?: string;
+    race?: string;
+    street?: string;
+    city?: string;
+    zip?: string;
+    state?: string;
+    county?: string;
+    upliftStatus?: upliftStatus | upliftStatus[];
+    gender?: gender | gender[];
+    relationshipType?: relationshipType | relationshipType[];
+  },
   options: {
     limit?: number;
     page?: number;
@@ -86,14 +99,17 @@ const queryPersons = async <Key extends keyof Person>(
   keys: Key[] = [
     'id',
     'name',
-    'email',
     'street',
     'city',
-    'phone',
     'state',
     'zip',
     'relationshipType',
-    'account'
+    'account',
+    'gender',
+    'upliftStatus',
+    'race',
+    'county',
+    'isDeleted'
   ] as Key[]
 ): Promise<{ results: Pick<Person, Key>[]; totalCount: number }> => {
   const page = options.page ?? 1;
@@ -101,18 +117,33 @@ const queryPersons = async <Key extends keyof Person>(
   const sortBy = options.sortBy;
   const sortType = options.sortType ?? 'desc';
 
-  const where: Record<string, any> = Object.entries(filter).reduce((acc, [key, value]) => {
-    if (value) {
-      acc[key] = {
-        contains: value
-      };
-    }
-    return acc;
-  }, {} as Record<string, any>);
+  const where: Prisma.PersonWhereInput = {
+    ...(filter.account && {
+      account: typeof filter.account === 'number' ? filter.account : { in: filter.account }
+    }),
+    ...(filter.name && { name: { contains: filter.name } }),
+    ...(filter.race && { race: { contains: filter.race } }),
+    ...(filter.street && { street: { contains: filter.street } }),
+    ...(filter.city && { city: { contains: filter.city } }),
+    ...(filter.zip && { zip: { contains: filter.zip } }),
+    ...(filter.state && { state: { contains: filter.state } }),
+    ...(filter.county && { county: { contains: filter.county } }),
+    ...(filter.upliftStatus && {
+      upliftStatus:
+        typeof filter.upliftStatus === 'string' ? filter.upliftStatus : { in: filter.upliftStatus }
+    }),
+    ...(filter.gender && {
+      gender: typeof filter.gender === 'string' ? filter.gender : { in: filter.gender }
+    }),
+    ...(filter.relationshipType && {
+      relationshipType:
+        typeof filter.relationshipType === 'string'
+          ? filter.relationshipType
+          : { in: filter.relationshipType }
+    })
+  };
 
-  const totalCount = await prisma.person.count({
-    where
-  });
+  const totalCount = await prisma.person.count({ where });
 
   const persons = await prisma.person.findMany({
     where,
@@ -136,10 +167,8 @@ const getPersonById = async <Key extends keyof Person>(
   keys: Key[] = [
     'id',
     'name',
-    'email',
     'street',
     'city',
-    'phone',
     'state',
     'zip',
     'relationshipType',
@@ -164,7 +193,6 @@ const updatePersonById = async <Key extends keyof Person>(
   keys: Key[] = [
     'id',
     'name',
-    'email',
     'street',
     'city',
     'phone',
@@ -195,6 +223,20 @@ const updatePersonById = async <Key extends keyof Person>(
   return updatedPerson as Pick<Person, Key> | null;
 };
 
+const softDeletePersonById = async (personId: number): Promise<Person | null> => {
+  const person = await getPersonById(personId);
+  if (!person) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Person not found');
+  }
+
+  const deletedPerson = await prisma.person.update({
+    where: { id: personId },
+    data: { isDeleted: true }
+  });
+
+  return deletedPerson;
+};
+
 /**
  * Delete person by id
  * @param {number} personId
@@ -215,5 +257,6 @@ export default {
   getPersonById,
   getPersonByAccount,
   updatePersonById,
-  deletePersonById
+  deletePersonById,
+  softDeletePersonById
 };

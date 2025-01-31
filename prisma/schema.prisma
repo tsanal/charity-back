@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -9,44 +6,70 @@ datasource db {
   provider = "mysql"
   url      = env("DATABASE_URL")
 }
-enum RelationshipType {
+
+enum relationshipType {
   Donor
   Participant
   Outreach
   Volunteer
   Grant
+  Vendor
+  Media
+  Empty
 }
+
+enum upliftStatus {
+  Inactive
+  Active
+  Prospective
+  Empty
+}
+
+enum gender {
+  Male
+  Female
+  Empty
+}
+
 model User {
-  id              Int      @id @default(autoincrement())
-  email           String   @unique
+  id              Int       @id @default(autoincrement())
+  email           String    @unique
   name            String?
   password        String
-  role            Role     @default(USER)
-  isEmailVerified Boolean  @default(false)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  role            Role      @default(USER)
+  isEmailVerified Boolean   @default(false)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
   Token           Token[]
 }
+
 model Person {
-  id    Int   @id @default(autoincrement())
-  name  String
-  email String?  
-  street String?
-  city   String?
-  phone  String?
-  state  String?
-  zip    String?
-  relationshipType  String?
-  account Int ?
+  id               Int             @id @default(autoincrement())
+  name             String
+  street           String?
+  city             String?
+  state            String?
+  zip              String?
+  relationshipType relationshipType?
+  account          Int
+  gender           gender?
+  race             String?
+  county          String?
+  upliftStatus     upliftStatus?
+  isDeleted        Boolean         @default(false)
+  interactions     Interaction[]   // Relation to Interaction
 }
+
 model Interaction {
-  id    Int   @id @default(autoincrement())
-  name   String
-  method String
-  date String
-  type String
-  duration String
-  description String
+  id          Int       @id @default(autoincrement())
+  name        String
+  method      String
+  type        String
+  date        DateTime
+  duration    String?      // Duration in seconds or minutes
+  notes       String?
+  personId    Int       // Foreign key
+  person      Person    @relation(fields: [personId], references: [id])
 }
 
 model Token {

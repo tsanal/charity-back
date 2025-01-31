@@ -5,6 +5,7 @@ import docsRoute from './docs.route';
 import personRoute from './person.route';
 import interactionRoute from './interaction.route';
 import config from '../../config/config';
+import excelRoute from './excel.route';
 
 const router = express.Router();
 
@@ -18,7 +19,8 @@ const defaultRoutes = [
     route: userRoute
   },
   { path: '/person', route: personRoute },
-  { path: '/interaction', route: interactionRoute }
+  { path: '/interaction', route: interactionRoute },
+  { path: '/excel', route: excelRoute }
 ];
 
 const devRoutes = [
