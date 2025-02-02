@@ -25,11 +25,14 @@ const createInteraction = catchAsync(async (req, res) => {
  * Get all interactions with filtering and pagination
  */
 const getInteractions = catchAsync(async (req, res) => {
+  const filter = pick(req.query, ['id', 'name', 'type', 'method', 'date', 'duration', 'notes']);
   const options = pick(req.query, ['sortBy', 'limit', 'page', 'sortType']);
-  const result = await interactionService.getInteractions(
-    Number(options.page) || 1,
-    Number(options.limit) || 10
-  );
+  const result = await interactionService.getInteractions(filter, {
+    page: Number(options.page) || 1,
+    limit: Number(options.limit) || 10,
+    sortBy: options.sortBy as string | undefined,
+    sortType: (options.sortType as 'asc' | 'desc') || 'desc'
+  });
   res.send(result);
 });
 

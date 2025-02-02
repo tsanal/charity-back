@@ -14,13 +14,17 @@ const createInteraction = {
 
 const getInteractions = {
   query: Joi.object().keys({
+    id: Joi.number(),
     name: Joi.string(),
-    method: Joi.string(),
     type: Joi.string(),
+    method: Joi.string(),
+    date: Joi.string(),
+    duration: Joi.string(),
+    notes: Joi.string(),
     sortBy: Joi.string(),
-    sortType: Joi.string().valid('asc', 'desc'),
     limit: Joi.number().integer(),
-    page: Joi.number().integer()
+    page: Joi.number().integer(),
+    sortType: Joi.string().valid('asc', 'desc')
   })
 };
 

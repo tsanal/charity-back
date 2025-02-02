@@ -14,7 +14,8 @@ const upload = multer({
   fileFilter: (_req, file, cb) => {
     if (
       file.mimetype === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
-      file.mimetype === 'application/vnd.ms-excel'
+      file.mimetype === 'application/vnd.ms-excel' ||
+      file.mimetype === 'application/octet-stream' // Add this for .xlsx files that might be sent with this mime type.
     ) {
       cb(null, true);
     } else {
@@ -23,8 +24,16 @@ const upload = multer({
   }
 });
 
-router.route('/upload').post(auth(), upload.single('file'), excelController.uploadExcelFile);
+router.route('/upload').post(
+  auth(),
+  upload.single('excel'), // Changed from 'file' to 'excel'.
+  excelController.uploadExcelFile
+);
 
-router.route('/validate').post(auth(), upload.single('file'), excelController.validateExcelFile);
+router.route('/validate').post(
+  auth(),
+  upload.single('excel'), // Changed from 'file' to 'excel'.
+  excelController.validateExcelFile
+);
 
 export default router;

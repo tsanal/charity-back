@@ -51,10 +51,10 @@ model Person {
   state            String?
   zip              String?
   relationshipType relationshipType?
-  account          Int
+  account          Int             
   gender           gender?
   race             String?
-  county          String?
+  county           String?
   upliftStatus     upliftStatus?
   isDeleted        Boolean         @default(false)
   interactions     Interaction[]   // Relation to Interaction

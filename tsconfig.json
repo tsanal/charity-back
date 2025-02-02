@@ -1,9 +1,10 @@
 {
   "compilerOptions": {
+    "typeRoots": ["node_modules/@types"],
     "target": "es2016",
     "outDir": "./build",
     "module": "commonjs",
-    "types": ["node"],
+    "types": ["node", "Multer"],
     "resolveJsonModule": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,

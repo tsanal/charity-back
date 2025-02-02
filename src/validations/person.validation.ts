@@ -63,13 +63,15 @@ const updatePerson = {
   body: Joi.object()
     .keys({
       name: Joi.string(),
-      email: Joi.string().email(),
       street: Joi.string().allow(''),
       city: Joi.string().allow(''),
-      phone: Joi.string().allow(''),
       state: Joi.string().allow(''),
       zip: Joi.string().allow(''),
-      relationshipType: Joi.string().allow('')
+      relationshipType: Joi.string().allow(''),
+      upliftStatus: Joi.string().allow(''),
+      race: Joi.string().allow(''),
+      gender: Joi.string().allow(''),
+      county: Joi.string().allow('')
     })
     .min(1)
 };

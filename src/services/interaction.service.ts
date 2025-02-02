@@ -44,20 +44,52 @@ const getInteractionById = async (id: number): Promise<Interaction | null> => {
 };
 
 /**
- * Get paginated interactions
+ * Get paginated interactions with filters
  */
-const getInteractions = async (page = 1, limit = 10) => {
+const getInteractions = async (
+  filter: {
+    id?: number;
+    name?: string;
+    type?: string;
+    method?: string;
+    date?: string;
+    duration?: string;
+    notes?: string;
+  },
+  options: {
+    sortBy?: string;
+    limit?: number;
+    page?: number;
+    sortType?: 'asc' | 'desc';
+  } = {}
+) => {
+  const page = options.page ?? 1;
+  const limit = options.limit ?? 10;
   const skip = (page - 1) * limit;
+
+  // Build where clause based on filters
+  const where: Prisma.InteractionWhereInput = {
+    AND: [
+      filter.id ? { id: Number(filter.id) } : {},
+      filter.name ? { name: { contains: filter.name } } : {},
+      filter.type ? { type: { contains: filter.type } } : {},
+      filter.method ? { method: { contains: filter.method } } : {},
+      filter.date ? { date: new Date(filter.date) } : {},
+      filter.duration ? { duration: { contains: filter.duration } } : {},
+      filter.notes ? { notes: { contains: filter.notes } } : {}
+    ]
+  };
 
   const [interactions, total] = await Promise.all([
     prisma.interaction.findMany({
+      where,
       skip,
       take: limit,
       orderBy: {
-        date: 'desc'
+        [options.sortBy || 'date']: options.sortType || 'desc'
       }
     }),
-    prisma.interaction.count()
+    prisma.interaction.count({ where })
   ]);
 
   return {

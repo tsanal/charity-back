@@ -4,12 +4,15 @@ import httpStatus from 'http-status';
 import config from '../config/config';
 import logger from '../config/logger';
 import ApiError from '../utils/ApiError';
+import multer from 'multer';
 
 export const errorConverter: ErrorRequestHandler = (err, req, res, next) => {
   let error = err;
   if (!(error instanceof ApiError)) {
     const statusCode =
-      error.statusCode || error instanceof Prisma.PrismaClientKnownRequestError
+      error instanceof multer.MulterError
+        ? httpStatus.BAD_REQUEST
+        : error.statusCode || error instanceof Prisma.PrismaClientKnownRequestError
         ? httpStatus.BAD_REQUEST
         : httpStatus.INTERNAL_SERVER_ERROR;
     const message = error.message || httpStatus[statusCode];
@@ -19,7 +22,7 @@ export const errorConverter: ErrorRequestHandler = (err, req, res, next) => {
 };
 
 // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
-export const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
+export const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
   let { statusCode, message } = err;
   if (config.env === 'production' && !err.isOperational) {
     statusCode = httpStatus.INTERNAL_SERVER_ERROR;

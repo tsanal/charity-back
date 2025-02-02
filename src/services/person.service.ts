@@ -14,18 +14,23 @@ const getPersonByAccount = async <Key extends keyof Person>(
   keys: Key[] = [
     'id',
     'name',
-    'email',
     'street',
     'city',
-    'phone',
     'state',
     'zip',
     'relationshipType',
-    'account'
+    'account',
+    'gender',
+    'race',
+    'county',
+    'upliftStatus',
+    'isDeleted'
   ] as Key[]
 ): Promise<Pick<Person, Key> | null> => {
   return prisma.person.findFirst({
-    where: { account },
+    where: {
+      account: account
+    },
     select: keys.reduce((obj, k) => ({ ...obj, [k]: true }), {})
   }) as Promise<Pick<Person, Key> | null>;
 };
@@ -195,11 +200,15 @@ const updatePersonById = async <Key extends keyof Person>(
     'name',
     'street',
     'city',
-    'phone',
     'state',
     'zip',
     'relationshipType',
-    'account'
+    'account',
+    'gender',
+    'race',
+    'county',
+    'upliftStatus',
+    'isDeleted'
   ] as Key[]
 ): Promise<Pick<Person, Key> | null> => {
   const person = await getPersonById(personId);
@@ -215,9 +224,18 @@ const updatePersonById = async <Key extends keyof Person>(
     }
   }
 
+  // Convert empty strings to null for enum fields
+  const data = {
+    ...updateBody,
+    relationshipType:
+      updateBody.relationshipType === ('' as relationshipType) ? null : updateBody.relationshipType,
+    gender: updateBody.gender === ('' as gender) ? null : updateBody.gender,
+    upliftStatus: updateBody.upliftStatus === ('' as upliftStatus) ? null : updateBody.upliftStatus
+  };
+
   const updatedPerson = await prisma.person.update({
     where: { id: personId },
-    data: updateBody,
+    data,
     select: keys.reduce((obj, k) => ({ ...obj, [k]: true }), {})
   });
   return updatedPerson as Pick<Person, Key> | null;
