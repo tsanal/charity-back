@@ -124,7 +124,6 @@ const queryPersons = async <Key extends keyof Person>(
   const sortType = options.sortType ?? 'desc';
 
   const where: Prisma.PersonWhereInput = {
-    isDeleted: false,
     ...(filter.account && {
       account: {
         in: await prisma.$queryRaw<Array<{ account: number }>>`
