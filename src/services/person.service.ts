@@ -83,7 +83,7 @@ const createPerson = async (
  */
 const queryPersons = async <Key extends keyof Person>(
   filter: {
-    account?: number | number[];
+    account?: number;
     name?: string;
     race?: string;
     street?: string;
@@ -94,6 +94,7 @@ const queryPersons = async <Key extends keyof Person>(
     upliftStatus?: upliftStatus | upliftStatus[];
     gender?: gender | gender[];
     relationshipType?: relationshipType | relationshipType[];
+    isDeleted?: boolean;
   },
   options: {
     limit?: number;
@@ -123,8 +124,15 @@ const queryPersons = async <Key extends keyof Person>(
   const sortType = options.sortType ?? 'desc';
 
   const where: Prisma.PersonWhereInput = {
+    isDeleted: false,
     ...(filter.account && {
-      account: typeof filter.account === 'number' ? filter.account : { in: filter.account }
+      account: {
+        in: await prisma.$queryRaw<Array<{ account: number }>>`
+          SELECT account 
+          FROM Person 
+          WHERE CAST(account AS CHAR) LIKE ${`%${filter.account}%`}
+        `.then((results) => results.map((r) => r.account))
+      }
     }),
     ...(filter.name && { name: { contains: filter.name } }),
     ...(filter.race && { race: { contains: filter.race } }),
@@ -145,7 +153,8 @@ const queryPersons = async <Key extends keyof Person>(
         typeof filter.relationshipType === 'string'
           ? filter.relationshipType
           : { in: filter.relationshipType }
-    })
+    }),
+    ...(filter.isDeleted !== undefined && { isDeleted: filter.isDeleted })
   };
 
   const totalCount = await prisma.person.count({ where });
@@ -269,6 +278,20 @@ const deletePersonById = async (personId: number): Promise<Person> => {
   return person;
 };
 
+const restorePersonById = async (personId: number): Promise<Person | null> => {
+  const person = await getPersonById(personId);
+  if (!person) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Person not found');
+  }
+
+  const restoredPerson = await prisma.person.update({
+    where: { id: personId },
+    data: { isDeleted: false }
+  });
+
+  return restoredPerson;
+};
+
 export default {
   createPerson,
   queryPersons,
@@ -276,5 +299,6 @@ export default {
   getPersonByAccount,
   updatePersonById,
   deletePersonById,
-  softDeletePersonById
+  softDeletePersonById,
+  restorePersonById
 };

@@ -87,11 +87,18 @@ const softDeletePerson = {
   })
 };
 
+const restorePerson = {
+  params: Joi.object().keys({
+    personId: Joi.number().integer()
+  })
+};
+
 export default {
   createPerson,
   getPersons,
   getPerson,
   updatePerson,
   deletePerson,
-  softDeletePerson
+  softDeletePerson,
+  restorePerson
 };

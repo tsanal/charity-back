@@ -1,0 +1,1 @@
+ALTER TABLE Interaction AUTO_INCREMENT = 10001; 

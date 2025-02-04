@@ -63,4 +63,12 @@ router
     personController.softDeletePerson
   );
 
+router
+  .route('/:personId/restore')
+  .put(
+    auth('manageUsers'),
+    validate(personValidation.restorePerson),
+    personController.restorePerson
+  );
+
 export default router;

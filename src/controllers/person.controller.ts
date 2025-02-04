@@ -95,11 +95,18 @@ const softDeletePerson = catchAsync(async (req, res) => {
   await personService.softDeletePersonById(Number(req.params.personId));
   res.status(httpStatus.NO_CONTENT).send();
 });
+
+const restorePerson = catchAsync(async (req, res) => {
+  await personService.restorePersonById(Number(req.params.personId));
+  res.status(httpStatus.NO_CONTENT).send();
+});
+
 export default {
   createPerson,
   getPersons,
   getPerson,
   updatePerson,
   deletePerson,
-  softDeletePerson
+  softDeletePerson,
+  restorePerson
 };
