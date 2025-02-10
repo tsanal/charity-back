@@ -14,6 +14,7 @@ const createInteraction = async (interactionData: {
   duration?: string; // Optional field for duration in seconds or minutes
   notes?: string; // Optional field for additional notes
   personId: number; // Required foreign key
+  account: number; // Remove optional marker (?)
 }): Promise<Interaction> => {
   // Ensure the `date` is a valid Date object
   const interactionDate =
@@ -27,9 +28,10 @@ const createInteraction = async (interactionData: {
       method: interactionData.method,
       type: interactionData.type,
       date: interactionDate,
-      duration: interactionData.duration, // Ensure compatibility with `Int?`
-      notes: interactionData.notes ?? null, // Optional field
-      personId: interactionData.personId // Foreign key
+      duration: interactionData.duration,
+      notes: interactionData.notes ?? null,
+      personId: interactionData.personId,
+      account: interactionData.account // Remove null handling since it's required
     }
   });
 };
@@ -55,6 +57,7 @@ const getInteractions = async (
     date?: string;
     duration?: string;
     notes?: string;
+    account?: number; // Add account field
   },
   options: {
     sortBy?: string;
@@ -76,7 +79,18 @@ const getInteractions = async (
       filter.method ? { method: { contains: filter.method } } : {},
       filter.date ? { date: new Date(filter.date) } : {},
       filter.duration ? { duration: { contains: filter.duration } } : {},
-      filter.notes ? { notes: { contains: filter.notes } } : {}
+      filter.notes ? { notes: { contains: filter.notes } } : {},
+      filter.account
+        ? {
+            account: {
+              in: await prisma.$queryRaw<Array<{ account: number }>>`
+            SELECT account 
+            FROM Interaction 
+            WHERE CAST(account AS CHAR) LIKE ${`%${filter.account}%`}
+          `.then((results) => results.map((r) => r.account))
+            }
+          }
+        : {}
     ]
   };
 
@@ -116,6 +130,8 @@ const updateInteraction = async (
     type?: string;
     duration?: string; // Allow string or number for duration
     description?: string; // Map to the `notes` field
+    account?: number; // Add account field
+    notes?: string; // Remove optional marker since it's required
   }
 ): Promise<Interaction> => {
   // Fetch the existing interaction
@@ -136,7 +152,9 @@ const updateInteraction = async (
     ...(updateData.duration && {
       duration: updateData.duration
     }),
-    ...(updateData.description && { notes: updateData.description }) // Map description to notes
+    ...(updateData.description && { notes: updateData.description }), // Map description to notes
+    ...(updateData.account && { account: updateData.account }),
+    ...(updateData.notes && { notes: updateData.notes })
   };
 
   return prisma.interaction.update({

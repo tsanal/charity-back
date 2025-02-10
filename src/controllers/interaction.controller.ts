@@ -8,7 +8,7 @@ import { interactionService } from '../services';
  * Create a new interaction
  */
 const createInteraction = catchAsync(async (req, res) => {
-  const { name, method, date, type, duration, notes, personId } = req.body;
+  const { name, method, date, type, duration, notes, personId, account } = req.body;
   const interaction = await interactionService.createInteraction({
     name,
     method,
@@ -16,7 +16,8 @@ const createInteraction = catchAsync(async (req, res) => {
     type,
     duration,
     notes,
-    personId
+    personId,
+    account
   });
   res.status(httpStatus.CREATED).send(interaction);
 });
@@ -25,7 +26,16 @@ const createInteraction = catchAsync(async (req, res) => {
  * Get all interactions with filtering and pagination
  */
 const getInteractions = catchAsync(async (req, res) => {
-  const filter = pick(req.query, ['id', 'name', 'type', 'method', 'date', 'duration', 'notes']);
+  const filter = pick(req.query, [
+    'id',
+    'name',
+    'type',
+    'method',
+    'date',
+    'duration',
+    'notes',
+    'account'
+  ]);
   const options = pick(req.query, ['sortBy', 'limit', 'page', 'sortType']);
   const result = await interactionService.getInteractions(filter, {
     page: Number(options.page) || 1,

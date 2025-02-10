@@ -4,11 +4,12 @@ const createInteraction = {
   body: Joi.object().keys({
     name: Joi.string().required(),
     method: Joi.string().required(),
-    date: Joi.string().required(),
+    date: Joi.date().required(),
     type: Joi.string().required(),
-    duration: Joi.string().required(),
-    notes: Joi.string().required(),
-    personId: Joi.number().integer().required()
+    duration: Joi.string(),
+    notes: Joi.string(),
+    personId: Joi.number().integer().required(),
+    account: Joi.number()
   })
 };
 
@@ -21,6 +22,7 @@ const getInteractions = {
     date: Joi.string(),
     duration: Joi.string(),
     notes: Joi.string(),
+    account: Joi.number(),
     sortBy: Joi.string(),
     limit: Joi.number().integer(),
     page: Joi.number().integer(),
@@ -45,7 +47,9 @@ const updateInteraction = {
       date: Joi.string(),
       type: Joi.string(),
       duration: Joi.string(),
-      description: Joi.string()
+      description: Joi.string(),
+      account: Joi.number(),
+      notes: Joi.string()
     })
     .min(1)
 };
