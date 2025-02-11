@@ -291,6 +291,59 @@ const restorePersonById = async (personId: number): Promise<Person | null> => {
   return restoredPerson;
 };
 
+/**
+ * Export persons data as CSV
+ * @returns {Promise<string>} CSV string
+ */
+const exportPersonsToCSV = async (): Promise<string> => {
+  // Get all persons without any filters
+  const persons = await prisma.person.findMany({
+    orderBy: {
+      id: 'asc'
+    }
+  });
+
+  // Define CSV headers - including all fields
+  const headers = [
+    'Account',
+    'Name',
+    'Street',
+    'City',
+    'State',
+    'ZIP',
+    'Relationship Type',
+    'County',
+    'Race',
+    'Gender',
+    'Uplift Status',
+    'Is Deleted'
+  ];
+
+  // Convert data to CSV rows
+  const rows = persons.map((person) => [
+    person.account,
+    person.name,
+    person.street || '',
+    person.city || '',
+    person.state || '',
+    person.zip || '',
+    person.relationshipType || '',
+    person.county || '',
+    person.race || '',
+    person.gender || '',
+    person.upliftStatus || '',
+    person.isDeleted ? 'Yes' : 'No'
+  ]);
+
+  // Combine headers and rows
+  const csvContent = [
+    headers.join(','),
+    ...rows.map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+  ].join('\n');
+
+  return csvContent;
+};
+
 export default {
   createPerson,
   queryPersons,
@@ -299,5 +352,6 @@ export default {
   updatePersonById,
   deletePersonById,
   softDeletePersonById,
-  restorePersonById
+  restorePersonById,
+  exportPersonsToCSV
 };

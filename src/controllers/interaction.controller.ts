@@ -76,10 +76,24 @@ const deleteInteraction = catchAsync(async (req, res) => {
   res.status(httpStatus.NO_CONTENT).send();
 });
 
+/**
+ * Export interactions data as CSV
+ */
+const exportInteractionsCSV = catchAsync(async (req, res) => {
+  const csvContent = await interactionService.exportInteractionsToCSV();
+
+  // Set headers for CSV download
+  res.setHeader('Content-Type', 'text/csv');
+  res.setHeader('Content-Disposition', 'attachment; filename=all_interactions.csv');
+
+  res.send(csvContent);
+});
+
 export default {
   createInteraction,
   getInteractions,
   getInteraction,
   updateInteraction,
-  deleteInteraction
+  deleteInteraction,
+  exportInteractionsCSV
 };

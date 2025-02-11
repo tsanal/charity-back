@@ -101,6 +101,19 @@ const restorePerson = catchAsync(async (req, res) => {
   res.status(httpStatus.NO_CONTENT).send();
 });
 
+/**
+ * Export persons data as CSV
+ */
+const exportPersonsCSV = catchAsync(async (req, res) => {
+  const csvContent = await personService.exportPersonsToCSV();
+
+  // Set headers for CSV download
+  res.setHeader('Content-Type', 'text/csv');
+  res.setHeader('Content-Disposition', 'attachment; filename=all_persons.csv');
+
+  res.send(csvContent);
+});
+
 export default {
   createPerson,
   getPersons,
@@ -108,5 +121,6 @@ export default {
   updatePerson,
   deletePerson,
   softDeletePerson,
-  restorePerson
+  restorePerson,
+  exportPersonsCSV
 };

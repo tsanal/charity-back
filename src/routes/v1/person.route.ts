@@ -71,4 +71,6 @@ router
     personController.restorePerson
   );
 
+router.get('/export/csv', auth('getUsers'), personController.exportPersonsCSV);
+
 export default router;

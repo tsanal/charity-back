@@ -37,4 +37,6 @@ router
     interactionController.deleteInteraction
   );
 
+router.get('/export/csv', auth('getUsers'), interactionController.exportInteractionsCSV);
+
 export default router;

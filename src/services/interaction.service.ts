@@ -178,10 +178,63 @@ const deleteInteraction = async (id: number): Promise<void> => {
   });
 };
 
+/**
+ * Export interactions data as CSV
+ * @returns {Promise<string>} CSV string
+ */
+const exportInteractionsToCSV = async (): Promise<string> => {
+  // Get all interactions without any filters
+  const interactions = await prisma.interaction.findMany({
+    orderBy: {
+      id: 'asc'
+    },
+    include: {
+      person: {
+        select: {
+          name: true
+        }
+      }
+    }
+  });
+
+  // Define CSV headers - including all relevant fields
+  const headers = [
+    'Account',
+    'Person Name',
+    'Interaction Name',
+    'Method',
+    'Type',
+    'Date',
+    'Duration',
+    'Notes'
+  ];
+
+  // Convert data to CSV rows
+  const rows = interactions.map((interaction) => [
+    interaction.account,
+    interaction.person?.name || '',
+    interaction.name,
+    interaction.method,
+    interaction.type,
+    interaction.date.toISOString().split('T')[0], // Format date as YYYY-MM-DD
+    interaction.duration || '',
+    interaction.notes || ''
+  ]);
+
+  // Combine headers and rows
+  const csvContent = [
+    headers.join(','),
+    ...rows.map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+  ].join('\n');
+
+  return csvContent;
+};
+
 export default {
   createInteraction,
   getInteractions,
   getInteractionById,
   updateInteraction,
-  deleteInteraction
+  deleteInteraction,
+  exportInteractionsToCSV
 };
