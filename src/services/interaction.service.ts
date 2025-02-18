@@ -10,17 +10,16 @@ const createInteraction = async (interactionData: {
   name: string;
   method: string;
   type: string;
-  date: Date | string; // Accept both Date object and string
-  duration?: string; // Optional field for duration in seconds or minutes
-  notes?: string; // Optional field for additional notes
-  personId: number; // Required foreign key
-  account: number; // Remove optional marker (?)
+  date: Date | string;
+  duration?: string;
+  notes?: string;
+  personId: number;
+  account: number;
 }): Promise<Interaction> => {
-  // Ensure the `date` is a valid Date object
-  const interactionDate =
-    typeof interactionData.date === 'string'
-      ? new Date(interactionData.date)
-      : interactionData.date;
+  // Parse the date and set it to start of day in UTC
+  const interactionDate = new Date(interactionData.date);
+  // Set the time to noon UTC to avoid any timezone shifting
+  interactionDate.setUTCHours(12, 0, 0, 0);
 
   return prisma.interaction.create({
     data: {
@@ -31,7 +30,7 @@ const createInteraction = async (interactionData: {
       duration: interactionData.duration,
       notes: interactionData.notes ?? null,
       personId: interactionData.personId,
-      account: interactionData.account // Remove null handling since it's required
+      account: interactionData.account
     }
   });
 };
@@ -57,7 +56,7 @@ const getInteractions = async (
     date?: string;
     duration?: string;
     notes?: string;
-    account?: number; // Add account field
+    account?: number;
   },
   options: {
     sortBy?: string;
@@ -70,14 +69,30 @@ const getInteractions = async (
   const limit = options.limit ?? 10;
   const skip = (page - 1) * limit;
 
-  // Build where clause based on filters
+  // Handle date filter with timezone consideration
+  let dateFilter = {};
+  if (filter.date) {
+    const startDate = new Date(filter.date);
+    startDate.setUTCHours(0, 0, 0, 0);
+
+    const endDate = new Date(filter.date);
+    endDate.setUTCHours(23, 59, 59, 999);
+
+    dateFilter = {
+      date: {
+        gte: startDate,
+        lte: endDate
+      }
+    };
+  }
+
   const where: Prisma.InteractionWhereInput = {
     AND: [
       filter.id ? { id: Number(filter.id) } : {},
       filter.name ? { name: { contains: filter.name } } : {},
       filter.type ? { type: { contains: filter.type } } : {},
       filter.method ? { method: { contains: filter.method } } : {},
-      filter.date ? { date: new Date(filter.date) } : {},
+      dateFilter,
       filter.duration ? { duration: { contains: filter.duration } } : {},
       filter.notes ? { notes: { contains: filter.notes } } : {},
       filter.account
@@ -106,8 +121,14 @@ const getInteractions = async (
     prisma.interaction.count({ where })
   ]);
 
+  // Format dates in the response
+  const formattedInteractions = interactions.map((interaction) => ({
+    ...interaction,
+    date: interaction.date.toISOString().split('T')[0] // Return date in YYYY-MM-DD format
+  }));
+
   return {
-    data: interactions,
+    data: formattedInteractions,
     meta: {
       total,
       page,
